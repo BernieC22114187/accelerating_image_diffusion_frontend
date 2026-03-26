@@ -10,8 +10,11 @@ example_annotation = {
 def get_boxes_json(annotations):
     return annotations["boxes"]
 
-
 with gr.Blocks() as demo:
+    with gr.Row():
+        inp = gr.Textbox(placeholder="Input prompt to change selected area")
+        btn = gr.Button("Run Edit")
+    
     with gr.Tab("Object annotation", id="tab_object_annotation"):
         annotator = image_annotator(
             example_annotation,
@@ -29,9 +32,7 @@ with gr.Blocks() as demo:
         json_boxes = gr.JSON()
         button_get.click(get_boxes_json, annotator, json_boxes)
         
-        with gr.Row():
-            inp = gr.Textbox(placeholder="Input prompt to change selected area")
-            btn = gr.Button("Run Edit")
+        
         
 
     with gr.Accordion("Keyboard Shortcuts"):
