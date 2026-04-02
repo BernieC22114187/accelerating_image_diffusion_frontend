@@ -1,0 +1,39 @@
+/* ── Font ─────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+
+*, body, .gradio-container {
+    font-family: "Fira Code", "Fira Mono", ui-monospace, monospace !important;
+}
+
+/* ── Background & text ────────────────────────────────────────── */
+body, .gradio-container        { background-color: #F9F6F1 !important; color: #1A1A1A !important; }
+.block                         { background-color: #FFFFFF !important; border-color: #E5DDD0 !important; }
+.block > .label-wrap           { background-color: #F9F6F1 !important; }
+.prose, div.prose, .md         { background-color: #F9F6F1 !important; }
+label, .label-wrap span        { color: #706B63 !important; }
+
+/* ── Inputs ───────────────────────────────────────────────────── */
+input, textarea, select        { background-color: #F9F6F1 !important; border-color: #E5DDD0 !important; color: #1A1A1A !important; }
+input:focus, textarea:focus    { border-color: #C96442 !important; box-shadow: 0 0 0 3px rgba(201,100,66,0.15) !important; }
+
+/* ── Primary button ───────────────────────────────────────────── */
+button.primary                 { background: #C96442 !important; border-color: #C96442 !important; color: #FFFFFF !important; }
+button.primary:hover           { background: #B5583A !important; border-color: #B5583A !important; }
+
+/* ── Radio buttons ────────────────────────────────────────────── */
+input[type=radio] {
+    appearance: auto !important;
+    -webkit-appearance: auto !important;
+    accent-color: #C96442 !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+/* selected label: terra cotta background, white text */
+label:has(input[type=radio]:checked) {
+    background-color: #C96442 !important;
+    border-color: #C96442 !important;
+    color: #FFFFFF !important;
+}
+label:has(input[type=radio]:checked) span {
+    color: #FFFFFF !important;
+}
