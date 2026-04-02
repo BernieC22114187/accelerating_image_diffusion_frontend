@@ -1,27 +1,9 @@
 import gradio as gr
 from gradio_image_annotation import image_annotator
-from PIL import Image
 from pathlib import Path
 import requests
-import base64
-import io
 
-# ── Backend config ──────────────────────────────────────────────────────────
-BACKEND_URL = "http://localhost:8000"   # change to your backend address
-
-
-# ── Helpers ─────────────────────────────────────────────────────────────────
-def _pil_to_b64(img: Image.Image) -> str:
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode()
-
-
-def _to_pil(img) -> Image.Image:
-    """Accept PIL Image or numpy array."""
-    if isinstance(img, Image.Image):
-        return img
-    return Image.fromarray(img)
+from helpers import BACKEND_URL, _pil_to_b64, _to_pil, _call_backend
 
 
 # ── Event handlers ───────────────────────────────────────────────────────────
@@ -32,24 +14,38 @@ def on_image_upload(img):
     return {"image": img, "boxes": []}
 
 
-def on_generate(annotator_data, prompt, accelerate):
+def on_mode_change(mode):
+    both = mode == "⚡🐢 Both"
+    normal = mode == "🐢 Normal"
+    label = "Normal Result" if normal else "Accelerated Result"
+    time_placeholder = "Normal: **—** s" if normal else "Accelerated: **—** s"
+    return (
+        gr.update(label=label),
+        gr.update(value=time_placeholder),
+        gr.update(visible=both),
+    )
+
+
+def on_generate(annotator_data, prompt, mode):
+    no_result = (None, "Accelerated: **—** s", None, "Normal: **—** s", gr.update(visible=False))
+
     if annotator_data is None:
         gr.Warning("Upload an image first.")
-        return None
+        return no_result
 
     boxes = annotator_data.get("boxes", [])
     if not boxes:
         gr.Warning("Draw a bounding box around the region you want to edit.")
-        return None
+        return no_result
 
     if not prompt.strip():
         gr.Warning("Enter an edit prompt.")
-        return None
+        return no_result
 
     image = _to_pil(annotator_data["image"])
     box   = boxes[0]
 
-    payload = {
+    base_payload = {
         "image": _pil_to_b64(image),
         "bbox": {
             "xmin": box["xmin"],
@@ -58,23 +54,31 @@ def on_generate(annotator_data, prompt, accelerate):
             "ymax": box["ymax"],
         },
         "prompt": prompt.strip(),
-        "accelerate": accelerate == "⚡ Accelerated",
     }
 
     try:
-        resp = requests.post(f"{BACKEND_URL}/generate", json=payload, timeout=120)
-        resp.raise_for_status()
-        data = resp.json()
-        result_img = Image.open(io.BytesIO(base64.b64decode(data["image"])))
-        elapsed = data.get("generation_time_seconds")
-        time_str = f"Generation time: **{elapsed:.2f}s**" if elapsed is not None else ""
-        return result_img, time_str
+        if mode == "⚡🐢 Both":
+            accel_img, accel_time = _call_backend({**base_payload, "accelerate": True})
+            normal_img, normal_time = _call_backend({**base_payload, "accelerate": False})
+            return (
+                accel_img,
+                f"Accelerated: {accel_time}",
+                normal_img,
+                f"Normal: {normal_time}",
+                gr.update(visible=True),
+            )
+        else:
+            accelerate = mode == "⚡ Accelerated"
+            img, time_str = _call_backend({**base_payload, "accelerate": accelerate})
+            label = "Accelerated" if accelerate else "Normal"
+            return img, f"{label}: {time_str}", None, "Normal: **—** s", gr.update(visible=False)
+
     except requests.exceptions.ConnectionError:
         gr.Warning(f"Cannot reach backend at {BACKEND_URL}. Is the server running?")
-        return None, "Generation time: **—**"
+        return no_result
     except Exception as exc:
         gr.Warning(f"Error: {exc}")
-        return None, "Generation time: **—**"
+        return no_result
 
 
 # ── UI ───────────────────────────────────────────────────────────────────────
@@ -124,21 +128,35 @@ with gr.Blocks(title="Accelerated Image Diffusion", theme=gr.themes.Soft(), css=
             )
             gr.Markdown("### Generation Mode")
             accelerate_toggle = gr.Radio(
-                choices=["⚡ Accelerated", "🐢 Normal"],
+                choices=["⚡ Accelerated", "🐢 Normal", "⚡🐢 Both"],
                 value="⚡ Accelerated",
                 label=None,
                 show_label=False,
-                info="Accelerated uses our optimized pipeline for faster results.",
+                info="'Both' runs accelerated then normal so you can compare generation times.",
             )
             generate_btn = gr.Button("Generate", variant="primary", size="lg")
 
             gr.Markdown("### Step 4 — Result")
-            result = gr.Image(label="Generated Image", interactive=False, height=380)
-            generation_time = gr.Markdown(value="Generation time: **—**")
+            with gr.Row():
+                with gr.Column(scale=1):
+                    result = gr.Image(label="Accelerated Result", interactive=False, height=320)
+                    generation_time_accelerated = gr.Markdown(value="Accelerated: **—** s")
+                with gr.Column(scale=1, visible=False) as col_normal:
+                    result_normal = gr.Image(label="Normal Result", interactive=False, height=320)
+                    generation_time_normal = gr.Markdown(value="Normal: **—** s")
 
     # ── Wiring ───────────────────────────────────────────────────────────────
     upload.change(fn=on_image_upload, inputs=upload, outputs=annotator)
-    generate_btn.click(fn=on_generate, inputs=[annotator, prompt, accelerate_toggle], outputs=[result, generation_time])
+    accelerate_toggle.change(
+        fn=on_mode_change,
+        inputs=accelerate_toggle,
+        outputs=[result, generation_time_accelerated, col_normal],
+    )
+    generate_btn.click(
+        fn=on_generate,
+        inputs=[annotator, prompt, accelerate_toggle],
+        outputs=[result, generation_time_accelerated, result_normal, generation_time_normal, col_normal],
+    )
 
 
 if __name__ == "__main__":
