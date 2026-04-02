@@ -11,14 +11,16 @@ example_annotation = {
 def get_boxes_json(annotations):
     return annotations["boxes"]
 
+def on_image_upload(image):
+    if image is None:
+        return gr.update()
+    return {"image": image, "boxes": []}
+    
+
 with gr.Blocks() as demo:
     with gr.Walkthrough(selected=0) as walkthrough:
         with gr.Step("Image", id=0):
-            image = gr.Image(type="pil")
-            
-            # NOTE: not sure if we need to do this
-            confirm_btn = gr.Button("Confirm")
-            
+            image = gr.Image(type="pil")    
             next_btn = gr.Button("Next")
             next_btn.click(lambda: gr.Walkthrough(selected=1), outputs=walkthrough)
         with gr.Step("Draw Bounding Box", id=1):
@@ -58,7 +60,7 @@ with gr.Blocks() as demo:
             btn.click(lambda: gr.Walkthrough(selected=3), outputs=walkthrough)
         with gr.Step("Result", id=3):
             gr.Image(label="result", interactive=False)
-     
+    image.change(fn=on_image_upload, inputs=image, outputs=annotator)
 
 if __name__ == "__main__":
     demo.launch()
