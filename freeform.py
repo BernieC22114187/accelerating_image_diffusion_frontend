@@ -15,7 +15,7 @@ def on_clear_strokes(editor_data):
 
 
 def on_brush_size_change(size):
-    return gr.update(brush=gr.Brush(colors=["rgba(255, 0, 0, 0.5)"], default_size=size))
+    return gr.update(brush=gr.Brush(colors=["rgba(255, 0, 0, 0.5)"], default_size=size), eraser=gr.Eraser(default_size=size))
 
 
 def on_mode_change(mode):
@@ -95,11 +95,12 @@ with gr.Blocks(title="Accelerated Image Diffusion", theme=gr.themes.Soft(), css=
         with gr.Column(scale=1):
             gr.Markdown(
                 "### Step 1 — Upload & Paint Region\n"
-                "Upload an image, then use the **brush** to paint over the area you want to edit. "
-                "Use the **eraser** to correct mistakes."
+                "Upload an image.\n\n"
+                "Then use the **brush** to paint over the specific subjects/areas you want to edit if needed. (optional)\n\n"
+                "Use the **Eraser** or **Clear Strokes** to correct mistakes."
             )
             brush_size = gr.Slider(
-                minimum=5, maximum=80, value=24, step=1, label="Brush Size"
+                minimum=5, maximum=80, value=24, step=1, label="Brush / Eraser Size"
             )
             editor = gr.ImageEditor(
                 label="Paint Region",
@@ -115,7 +116,7 @@ with gr.Blocks(title="Accelerated Image Diffusion", theme=gr.themes.Soft(), css=
         with gr.Column(scale=1):
             gr.Markdown("### Step 3 — Describe the Edit")
             prompt = gr.Textbox(
-                placeholder="e.g. 'replace with a red sports car', 'add trees in the background'",
+                placeholder="e.g. 'replace red semi-transparent mask region with a sports car', 'add trees in the background'",
                 label="Edit Prompt",
                 lines=3,
             )
