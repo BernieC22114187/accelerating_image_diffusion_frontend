@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import site; print\\('\\\\n'.join\\(site.getsitepackages\\(\\)\\)\\)\")",
+      "Read(//opt/homebrew/Caskroom/miniforge/base/envs/diffusion-acceleration-frontend/lib/python3.12/site-packages/gradio_image_annotation/templates/**)",
+      "Read(//opt/homebrew/Caskroom/miniforge/base/envs/diffusion-acceleration-frontend/lib/python3.12/site-packages/gradio_image_annotation/**)"
+    ]
+  }
+}
