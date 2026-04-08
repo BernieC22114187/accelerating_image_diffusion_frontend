@@ -18,6 +18,25 @@ def on_brush_size_change(size):
     return gr.update(brush=gr.Brush(colors=["rgba(255, 0, 0, 0.5)"], default_size=size), eraser=gr.Eraser(default_size=size))
 
 
+def _brush_range_for_dims(w, h):
+    min_dim = min(w, h)
+    min_size = max(3, round(min_dim * 0.005))
+    max_size = max(20, round(min_dim * 0.15))
+    default_size = max(8, round(min_dim * 0.03))
+    return min_size, max_size, default_size
+
+
+def on_image_upload(editor_data):
+    if editor_data is None:
+        return gr.update()
+    bg = editor_data.get("background")
+    if bg is None:
+        return gr.update()
+    img = bg if isinstance(bg, Image.Image) else _to_pil(bg)
+    min_size, max_size, default_size = _brush_range_for_dims(*img.size)
+    return gr.update(minimum=min_size, maximum=max_size, value=default_size)
+
+
 def on_mode_change(mode):
     both = mode == "⚡🐢 Both"
     normal = mode == "🐢 Normal"
@@ -140,6 +159,7 @@ with gr.Blocks(title="Accelerated Image Diffusion", theme=gr.themes.Soft(), css=
                     generation_time_normal = gr.Markdown(value="Normal: **—** s")
 
     # ── Wiring ────────────────────────────────────────────────────────────────
+    editor.upload(fn=on_image_upload, inputs=[editor], outputs=[brush_size])
     brush_size.change(fn=on_brush_size_change, inputs=brush_size, outputs=editor)
     clear_btn.click(fn=on_clear_strokes, inputs=editor, outputs=editor)
     accelerate_toggle.change(
