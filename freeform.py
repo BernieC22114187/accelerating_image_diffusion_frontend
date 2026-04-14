@@ -3,7 +3,7 @@ from pathlib import Path
 import requests
 from PIL import Image
 
-from helpers import BACKEND_URL, _pil_to_b64, _to_pil, _call_backend
+from helpers import BACKEND_URL, _pil_to_b64, _to_pil, _call_backend, _call_backend_both
 
 
 # ── Event handlers ────────────────────────────────────────────────────────────
@@ -74,8 +74,7 @@ def on_generate(editor_data, prompt, mode):
 
     try:
         if mode == "⚡🐢 Both":
-            accel_img, accel_time = _call_backend({**base_payload, "accelerate": True})
-            normal_img, normal_time = _call_backend({**base_payload, "accelerate": False})
+            accel_img, accel_time, normal_img, normal_time = _call_backend_both(base_payload)
             return (
                 accel_img,
                 f"Accelerated: {accel_time}",
