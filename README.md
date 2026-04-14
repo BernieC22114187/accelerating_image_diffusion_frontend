@@ -22,7 +22,7 @@ The bounding box coordinates (`xmin`, `ymin`, `xmax`, `ymax`) are sent to the ba
 
 ### Freeform Brush mode (`freeform.py`)
 
-1. **Upload & paint** — upload an image, then use the red brush to paint over the area you want to edit. Use the eraser to correct mistakes. Adjust brush size with the slider.
+1. **Upload & paint** — upload an image, then use the red brush to paint over the area you want to edit. Use the eraser to correct mistakes. The brush size slider automatically adapts its range and default to the image dimensions; you can also adjust it manually.
 2. **Describe the edit** — type a text prompt.
 3. **Generate** — click **Generate** and view the result.
 
