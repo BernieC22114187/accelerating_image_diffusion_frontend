@@ -51,7 +51,7 @@ compiled_transformer  = None   # lazy-compiled on first accelerated call
 async def lifespan(app: FastAPI):
     global pipe, original_transformer
     print(f"Loading {MODEL_ID} on {DEVICE} ({DTYPE}) …")
-    pipe = FluxKontextPipeline.from_pretrained(MODEL_ID, torch_dtype=DTYPE)
+    pipe = FluxKontextPipeline.from_pretrained(MODEL_ID, torch_dtype=DTYPE, local_files_only=True)
     pipe.to(DEVICE)
     pipe.set_progress_bar_config(disable=True)
     original_transformer = pipe.transformer
